@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "744397858814",
+    "project_id": "midshire-service",
+    "storage_bucket": "midshire-service.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:744397858814:android:845767009c568af72582af",
+        "android_client_info": {
+          "package_name": "com.midshire.midshireservice"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "744397858814-4n5u8fs76d8iv0edbiadfg42bclqmcp3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.midshire.midshireservice",
+            "certificate_hash": "90160ccb554ff85f2694f8e3c78711527d21ad90"
+          }
+        },
+        {
+          "client_id": "744397858814-idapjp40pv82c9t8ujb1ml1qage1hjf4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmPN_PWfaeOuqno1fo4jeXNBmTw-iULa8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "744397858814-idapjp40pv82c9t8ujb1ml1qage1hjf4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

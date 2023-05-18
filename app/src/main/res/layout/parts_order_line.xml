@@ -1,0 +1,120 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/_16sdp">
+
+    <ImageView
+        android:id="@+id/imgdltbtn"
+        android:layout_width="@dimen/_24sdp"
+        android:layout_height="@dimen/_24sdp"
+        android:src="@drawable/baseline_delete_forever_24"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_12ssp"
+        android:fontFamily="@font/ubuntu_medium"
+        android:layout_marginBottom="@dimen/_5sdp"
+        android:text="Quantity:" />
+
+    <EditText
+        android:id="@+id/quantity_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_30sdp"
+        android:background="@drawable/editext_border"
+        android:inputType="number"
+        android:padding="@dimen/_5sdp"
+        android:textColorHint="#9E9E9E"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_12ssp"
+        android:fontFamily="@font/ubuntu"
+        android:hint="Enter Quantity"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Part no:" android:textColor="@color/black"
+        android:textSize="@dimen/_12ssp"
+        android:fontFamily="@font/ubuntu_medium"
+        android:layout_marginBottom="@dimen/_5sdp"/>
+
+    <EditText
+        android:id="@+id/name_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_30sdp"
+        android:padding="@dimen/_5sdp"
+        android:textColorHint="#9E9E9E"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_12ssp"
+        android:fontFamily="@font/ubuntu"
+        android:hint="Enter part no."
+        android:background="@drawable/editext_border"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Description of the parts fitted:" android:textColor="@color/black"
+        android:textSize="@dimen/_12ssp"
+        android:fontFamily="@font/ubuntu_medium"
+        android:layout_marginBottom="@dimen/_5sdp"/>
+
+    <EditText
+        android:id="@+id/description_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_50sdp"
+        android:padding="@dimen/_5sdp"
+        android:textColorHint="#9E9E9E"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_12ssp"
+        android:fontFamily="@font/ubuntu"
+        android:inputType="textMultiLine"
+        android:ems="5"
+        android:gravity="top"
+        android:hint="Parts Description"
+        android:background="@drawable/editext_border"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Unit Price:" android:textColor="@color/black"
+        android:textSize="@dimen/_12ssp"
+        android:fontFamily="@font/ubuntu_medium"
+        android:layout_marginBottom="@dimen/_5sdp"/>
+
+    <EditText
+        android:id="@+id/unit_price_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_30sdp"
+        android:inputType="numberDecimal"
+        android:padding="@dimen/_5sdp"
+        android:textColorHint="#9E9E9E"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_12ssp"
+        android:fontFamily="@font/ubuntu"
+        android:hint="Enter Unit Price"
+        android:background="@drawable/editext_border"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ext Price:" android:textColor="@color/black"
+        android:textSize="@dimen/_12ssp"
+        android:fontFamily="@font/ubuntu_medium"
+        android:layout_marginBottom="@dimen/_5sdp" />
+
+    <EditText
+        android:id="@+id/ext_price_edit_text"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_30sdp"
+        android:inputType="numberDecimal"
+        android:padding="@dimen/_5sdp"
+        android:textColorHint="#9E9E9E"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_12ssp"
+        android:fontFamily="@font/ubuntu"
+        android:hint="Ext Price"
+        android:background="@drawable/editext_border"/>
+
+</LinearLayout>
