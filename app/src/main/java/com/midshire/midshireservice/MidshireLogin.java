@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -33,6 +34,8 @@ public class MidshireLogin extends AppCompatActivity {
     private GoogleSignInClient googleSignInClient;
     private int RC_SIGN_IN=1001;
     FirebaseAuth firebaseAuth;
+    private SharedPreferences sharedPreferences;
+    private static final String SHARED_PREFS_KEY = "shared_prefs_auth_key";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +50,11 @@ public class MidshireLogin extends AppCompatActivity {
         // Initialize sign in client
         googleSignInClient = GoogleSignIn.getClient(MidshireLogin.this, googleSignInOptions);
 
-
+        sharedPreferences = getSharedPreferences("MidAuthPrefs",MODE_PRIVATE);
+        if (!sharedPreferences.contains(SHARED_PREFS_KEY)) {
+            startActivity(new Intent(MidshireLogin.this, MidshiresAuthActivity.class));
+            finish();
+        }
 
         sign_in_button.setOnClickListener(new View.OnClickListener() {
             @Override

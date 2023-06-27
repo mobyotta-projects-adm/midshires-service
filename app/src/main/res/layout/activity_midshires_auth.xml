@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    tools:context=".MidshiresAuthActivity">
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="@dimen/_200sdp"
+        android:layout_height="@dimen/_80sdp"
+        app:srcCompat="@drawable/midshirelogo"
+        android:layout_marginBottom="@dimen/_50sdp"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enter auth key (Contact admin)"
+        android:paddingLeft="@dimen/_16sdp"
+        android:textColor="@color/black"
+        android:textSize="@dimen/_14ssp"
+        android:fontFamily="@font/ubuntu_medium"/>
+    <EditText
+        android:id="@+id/et_authtxt"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_45sdp"
+        android:background="@drawable/editext_border"
+        android:padding="@dimen/_8sdp"
+        android:layout_marginLeft="@dimen/_16sdp"
+        android:layout_marginRight="@dimen/_16sdp"
+        android:layout_marginTop="@dimen/_5sdp"
+        android:hint="Auth key"
+        android:textColor="@color/black"/>
+    <Button
+        android:id="@+id/btn_auth"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_50sdp"
+        android:layout_margin="@dimen/_16sdp"
+        android:text="Continue"
+        android:gravity="center"
+        android:textSize="@dimen/_14ssp"
+        android:fontFamily="@font/ubuntu_medium"/>
+</LinearLayout>

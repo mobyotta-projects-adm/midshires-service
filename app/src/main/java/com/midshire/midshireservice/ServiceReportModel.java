@@ -6,9 +6,6 @@ public class ServiceReportModel {
     public String serviceSerialNo;
     public String customer;
     public String natureOfCallOut;
-    public String make;
-    public String model;
-    public String serialno;
     public String caller;
     public String email;
     public String phone;
@@ -29,6 +26,8 @@ public class ServiceReportModel {
     public String inTime;
     public String outTime;
     public String visitDetails;
+
+    public String advice;
     public String partsTotal;
     public String calloutstdot;
     public String labourHrs;
@@ -71,30 +70,6 @@ public class ServiceReportModel {
 
     public void setCaller(String caller) {
         this.caller = caller;
-    }
-
-    public String getMake() {
-        return make;
-    }
-
-    public void setMake(String make) {
-        this.make = make;
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public void setModel(String model) {
-        this.model = model;
-    }
-
-    public String getSerialno() {
-        return serialno;
-    }
-
-    public void setSerialno(String serialno) {
-        this.serialno = serialno;
     }
 
     public String getEmail() {
@@ -244,9 +219,16 @@ public class ServiceReportModel {
     public String getVisitDetails() {
         return visitDetails;
     }
-
     public void setVisitDetails(String visitDetails) {
         this.visitDetails = visitDetails;
+    }
+
+    public String getAdvice() {
+        return advice;
+    }
+
+    public void setAdvice(String advice) {
+        this.advice = advice;
     }
 
     public String getPartsTotal() {

@@ -10,16 +10,21 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.Base64;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -28,6 +33,7 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -48,6 +54,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.gson.Gson;
+import com.midshire.midshireservice.utils.OverlayService;
 import com.midshire.midshireservice.utils.SignatureView;
 
 import org.json.JSONException;
@@ -69,30 +76,32 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int CAMERA_PERMISSION_CODE = 1;
     private static final int READ_EXTERNAL_STORAGE_CODE = 2;
+    private static final int OVERLAY_PERMISSION_CODE = 3000;
 
-    public int REQUEST_IMAGE_GALLERY = 1001;
-    public int REQUEST_IMAGE_CAMERA = 2001;
     MaterialAlertDialogBuilder resultAlertDialog;
     ProgressDialog progressDialog;
     SignatureView signatureView;
-    String serviceSerialno,customer, make, model, serialno, email, phone, engineer,
+    final int popupWidth = 600;
+    final int popupHeight = 800;
+    String serviceSerialno,customer, email, phone, engineer,
             account, warranty, cod, rentals, stdhrs, webshop, othrs, subcontract, callout,
-            mcontract, delivery, installation, dateone, intimeone, outtimeone, visistDetails, partstotal, calloutstdot,
+            mcontract, delivery, installation, dateone, intimeone, outtimeone, visistDetails, customeradvice, partstotal, calloutstdot,
             labourhours, subtotal, vat, totalpayable, natureOfCallOut, caller ;
 
-    EditText etcustomer, etmake, etmodel, etserialno, etemail, etphone, etengineer,
+    EditText etcustomer, etemail, etphone, etengineer,
             etvisitdetails, etdateone, etIntimeone, etOuttimeone, etpartstotal, etcalloutstdot,
-            etlabourhours, etsubtotal, etvat, ettotalpayable, etcaller, etnaturecallout ;
+            etlabourhours, etsubtotal, etvat, ettotalpayable, etcaller, etnaturecallout, etadvicebox ;
     CheckBox  chaccount, chwarranty, chcod, chrentals, chstdhrs, chwebshop, chothrs,
-            chsubcontract, chcallout, chmcontract, chdelivery, chinstallation;
-    Button partonebtn, parttwobtn,parttwobackbtn,partthreebtn,partthreebackbtn, btn_backtthree,btn_finish;
-    LinearLayout formpartone, formparttwo, formpartthree, formpartfour,addImageSection;
+            chsubcontract, chcallout, chmcontract, chdelivery, chinstallation, tandacCheck;
+    Button partonebtn, parttwobtn,parttwobackbtn,partthreebtn,partthreebackbtn, btn_backtthree,btn_finish, btn_backonepointtwo, btn_nextonepointtwo, addMchBtn;
+    LinearLayout formpartone, formparttwo, formpartthree, formpartfour,addImageSection, formpartonepointtwo;
     String partsOrderLines="";
-    TextView txtserviceserialno;
+    String machineListLines="";
+    TextView txtserviceserialno, tandcLink, imageHelperText;
 
     private Button addOrderLineButton;
-    private Button submitbtn;
-    private LinearLayout orderLinesContainer, fittedParts;
+    private Button submitbtn, savemachineListbtn;
+    private LinearLayout machineLinesContainer, orderLinesContainer, fittedParts;
     RadioGroup radioGroup,imgRadioGroup;
     private EditText totalPriceEditText;
     ImageView imageViewOne, imageViewtwo, imageViewThree, imageViewFour, imgLogoutBtn;
@@ -103,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
     String imagefourstr = "";
     String signatureStr = "";
     OrderLines orderLines = new OrderLines();
+    MachineLines machineLines = new MachineLines();
     Intent starterIntent;
     boolean isOrderWithoutParts = true;
 
@@ -113,6 +123,8 @@ public class MainActivity extends AppCompatActivity {
     boolean addImages = false;
     Button btnsigclear, btnsigsave;
     private GoogleSignInAccount acct;
+    SharedPreferences sharedPreferences;
+    private static final String SHARED_PREFS_KEY = "shared_prefs_auth_key";
     @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -127,13 +139,19 @@ public class MainActivity extends AppCompatActivity {
 
         googleSignInClient=GoogleSignIn.getClient(this,gso);
 
-
-        // Initialize firebase user
-        //FirebaseUser firebaseUser = firebaseAuth.getCurrentUser();
+        sharedPreferences = getSharedPreferences("MidAuthPrefs",MODE_PRIVATE);
+        if (!sharedPreferences.contains(SHARED_PREFS_KEY)) {
+            startActivity(new Intent(MainActivity.this, MidshiresAuthActivity.class));
+            signOut();
+            finish();
+        }
         checkPermission();
         starterIntent = getIntent();
+
+
         addOrderLineButton = findViewById(R.id.add_order_line_button);
         orderLinesContainer = findViewById(R.id.order_lines_container);
+        machineLinesContainer = findViewById(R.id.machine_lines_container);
         submitbtn = findViewById(R.id.submitbtn);
         fittedParts = findViewById(R.id.fittedparts);
         radioGroup = findViewById(R.id.fittedpartsRadio);
@@ -156,6 +174,20 @@ public class MainActivity extends AppCompatActivity {
              addPartView();
             }
         });
+        addMchBtn = findViewById(R.id.addMchBtn);
+        addMchBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addMachineView();
+            }
+        });
+        savemachineListbtn = findViewById(R.id.saveMachineBtn);
+        savemachineListbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                saveMachineListInformation();
+            }
+        });
 
         submitbtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -170,9 +202,6 @@ public class MainActivity extends AppCompatActivity {
         progressDialog.setMessage("Fetching details...");
 
         etcustomer = findViewById(R.id.et_customer);
-        etmake = findViewById(R.id.et_make);
-        etmodel = findViewById(R.id.et_model);
-        etserialno = findViewById(R.id.et_serialno);
         etemail = findViewById(R.id.et_email);
         etphone = findViewById(R.id.et_telephone);
         etengineer = findViewById(R.id.et_engineer);
@@ -182,6 +211,7 @@ public class MainActivity extends AppCompatActivity {
         etIntimeone = findViewById(R.id.et_visitIntimeone);
         etOuttimeone = findViewById(R.id.et_visitOuttimeone);
         etvisitdetails = findViewById(R.id.et_dateonevisit);
+        etadvicebox = findViewById(R.id.et_advicebox);
         etpartstotal = findViewById(R.id.et_partstotal);
         etcalloutstdot = findViewById(R.id.et_callouttotal);
         etlabourhours = findViewById(R.id.et_labourHours);
@@ -190,10 +220,13 @@ public class MainActivity extends AppCompatActivity {
         ettotalpayable = findViewById(R.id.et_finaltotalamount);
 
         formpartone = findViewById(R.id.formpartone);
+        formpartonepointtwo = findViewById(R.id.formpartonepointtwo);
         formparttwo = findViewById(R.id.formparttwo);
         formpartthree = findViewById(R.id.formpartthree);
         formpartfour = findViewById(R.id.formpartfour);
         partonebtn = findViewById(R.id.btn_partone);
+        btn_backonepointtwo = findViewById(R.id.btn_backonepointtwo);
+        btn_nextonepointtwo = findViewById(R.id.btn_nextonepointtwo);
         parttwobtn = findViewById(R.id.btn_parttwo);
         parttwobackbtn = findViewById(R.id.btn_backone);
 
@@ -223,6 +256,9 @@ public class MainActivity extends AppCompatActivity {
         chmcontract = findViewById(R.id.ch_mcontract);
         chdelivery = findViewById(R.id.ch_delivery);
         chinstallation = findViewById(R.id.ch_installation);
+        tandacCheck = findViewById(R.id.tandcCheck);
+        tandcLink = findViewById(R.id.tandcLink);
+        imageHelperText = findViewById(R.id.imageHelperText);
         signatureView = findViewById(R.id.signatureView);
         btnsigsave = findViewById(R.id.button_sigsave);
         btnsigclear = findViewById(R.id.button_sigclear);
@@ -240,6 +276,16 @@ public class MainActivity extends AppCompatActivity {
                 String bitmapstr = bitmapToBase64(signatureBitmap);
                 String mimetype = getMimeType(signatureBitmap);
                 signatureStr = "data:"+mimetype+";base64,"+bitmapstr;
+            }
+        });
+
+
+        tandcLink.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Uri uri = Uri.parse("https://projectsmobyotta.com/midshire/termsandconditions.html");
+                Intent intent = new Intent(Intent.ACTION_VIEW, uri);
+                startActivity(intent);
             }
         });
 
@@ -284,9 +330,11 @@ public class MainActivity extends AppCompatActivity {
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
                 if (i == R.id.img_show) {
                     addImageSection.setVisibility(View.VISIBLE);
+                    imageHelperText.setVisibility(View.VISIBLE);
                     addImages = true;
                 } else if (i == R.id.img_hide) {
                     addImageSection.setVisibility(View.GONE);
+                    imageHelperText.setVisibility(View.GONE);
                     addImages = false;
                     imageonestr = "";
                     imagetwostr = "";
@@ -300,14 +348,37 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 formpartone.setVisibility(View.GONE);
-                formparttwo.setVisibility(View.VISIBLE);
+                formpartonepointtwo.setVisibility(View.VISIBLE);
+            }
+        });
+        btn_backonepointtwo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                formpartonepointtwo.setVisibility(View.GONE);
+                formpartone.setVisibility(View.VISIBLE);
+            }
+        });
+
+        btn_nextonepointtwo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (machineListLines.length() == 0 || machineListLines.isEmpty()) {
+                    Toast.makeText(MainActivity.this, "Please save machine list first!", Toast.LENGTH_SHORT).show();
+                }
+                else if (machineListLines == "[]") {
+                    Toast.makeText(MainActivity.this, "You have not added any machine!", Toast.LENGTH_SHORT).show();
+                }
+                else {
+                    formpartonepointtwo.setVisibility(View.GONE);
+                    formparttwo.setVisibility(View.VISIBLE);
+                }
             }
         });
         parttwobackbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 formparttwo.setVisibility(View.GONE);
-                formpartone.setVisibility(View.VISIBLE);
+                formpartonepointtwo.setVisibility(View.VISIBLE);
             }
         });
         parttwobtn.setOnClickListener(new View.OnClickListener() {
@@ -354,7 +425,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if(signatureStr.length()>0) {
-                    sendServiceReport();
+                    if(tandacCheck.isChecked()){
+                        sendServiceReport();
+                    }
+                    else {
+                        Toast.makeText(MainActivity.this, "Please agree to the terms and conditions!", Toast.LENGTH_SHORT).show();
+                    }
                 }
                 else {
                     Toast.makeText(MainActivity.this, "Please sign and save first!", Toast.LENGTH_SHORT).show();
@@ -380,6 +456,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        imageViewOne.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                Dialog dialog = new Dialog(MainActivity.this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+                dialog.setContentView(R.layout.zoom_image);
+
+                ImageView popupImageView = dialog.findViewById(R.id.popupImageView);
+                popupImageView.setImageDrawable(imageViewOne.getDrawable());
+
+                dialog.show();
+                return true;
+            }
+        });
+
         imageViewtwo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -395,6 +485,19 @@ public class MainActivity extends AppCompatActivity {
                 Intent[] intentArray = {cameraIntent};
                 chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, intentArray);
                 startActivityForResult(chooser, 10002);
+            }
+        });
+        imageViewtwo.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                Dialog dialog = new Dialog(MainActivity.this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+                dialog.setContentView(R.layout.zoom_image);
+
+                ImageView popupImageView = dialog.findViewById(R.id.popupImageView);
+                popupImageView.setImageDrawable(imageViewtwo.getDrawable());
+
+                dialog.show();
+                return true;
             }
         });
 
@@ -415,6 +518,19 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(chooser, 10003);
             }
         });
+        imageViewThree.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                Dialog dialog = new Dialog(MainActivity.this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+                dialog.setContentView(R.layout.zoom_image);
+
+                ImageView popupImageView = dialog.findViewById(R.id.popupImageView);
+                popupImageView.setImageDrawable(imageViewThree.getDrawable());
+
+                dialog.show();
+                return false;
+            }
+        });
 
         imageViewFour.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -433,6 +549,63 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(chooser, 10004);
             }
         });
+        imageViewFour.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                Dialog dialog = new Dialog(MainActivity.this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+                dialog.setContentView(R.layout.zoom_image);
+
+                ImageView popupImageView = dialog.findViewById(R.id.popupImageView);
+                popupImageView.setImageDrawable(imageViewFour.getDrawable());
+
+                dialog.show();
+                return false;
+            }
+        });
+
+
+    }
+
+    private void addMachineView() {
+        final View machineView = LayoutInflater.from(getApplicationContext()).inflate(R.layout.machine_layout, null);
+        final EditText makeEditText = machineView.findViewById(R.id.make_edit_text);
+        final EditText modelEditText = machineView.findViewById(R.id.model_edit_text);
+        final EditText serialNoEditText = machineView.findViewById(R.id.serialno_edit_text);
+        final ImageView deleteMachineButton = machineView.findViewById(R.id.imgdltbtnMachine);
+
+        deleteMachineButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                machineLinesContainer.removeView(machineView);
+            }
+        });
+        machineLinesContainer.addView(machineView);
+
+    }
+
+    public void saveMachineListInformation() {
+        ArrayList<MachineModel> machineModelsList = new ArrayList<>();
+        for(int i = 0; i<machineLinesContainer.getChildCount(); i++) {
+            View machineListView = machineLinesContainer.getChildAt(i);
+            EditText makeEditText = machineListView.findViewById(R.id.make_edit_text);
+            EditText modelEditText = machineListView.findViewById(R.id.model_edit_text);
+            EditText serialNoEditText = machineListView.findViewById(R.id.serialno_edit_text);
+
+            String make = makeEditText.getText().toString().trim();
+            String model = modelEditText.getText().toString().trim();
+            String serialno = serialNoEditText.getText().toString().trim();
+
+            MachineModel machineModel = new MachineModel(make, model, serialno);
+            machineModelsList.add(machineModel);
+
+        }
+
+        machineLines.setMachinesList(machineModelsList);
+        Gson gson = new Gson();
+        machineListLines = gson.toJson(machineLines);
+
+        Toast.makeText(this, "Machine List saved", Toast.LENGTH_SHORT).show();
+        Log.d("MACHINE_LIST", machineListLines);
 
 
     }
@@ -440,9 +613,6 @@ public class MainActivity extends AppCompatActivity {
     private void sendServiceReport() {
         customer = etcustomer.getText().toString().trim();
         natureOfCallOut = etnaturecallout.getText().toString().trim();
-        make = etmake.getText().toString().trim();
-        model = etmodel.getText().toString().trim();
-        serialno = etserialno.getText().toString().trim();
         caller = etcaller.getText().toString().trim();
         email = etemail.getText().toString().trim();
         phone = etphone.getText().toString().trim();
@@ -450,6 +620,7 @@ public class MainActivity extends AppCompatActivity {
         intimeone = etIntimeone.getText().toString().trim();
         outtimeone = etOuttimeone.getText().toString().trim();
         visistDetails = etvisitdetails.getText().toString().trim();
+        customeradvice = etadvicebox.getText().toString().trim();
         partstotal = etpartstotal.getText().toString().trim();
         calloutstdot = etcalloutstdot.getText().toString().trim();
         labourhours = etlabourhours.getText().toString().trim();
@@ -461,9 +632,6 @@ public class MainActivity extends AppCompatActivity {
         serviceReportModel.setServiceSerialNo(serviceSerialno);
         serviceReportModel.setCustomer(customer);
         serviceReportModel.setNatureOfCallOut(natureOfCallOut);
-        serviceReportModel.setMake(make);
-        serviceReportModel.setModel(model);
-        serviceReportModel.setSerialno(serialno);
         serviceReportModel.setCaller(caller);
         serviceReportModel.setEmail(email);
         serviceReportModel.setPhone(phone);
@@ -484,6 +652,7 @@ public class MainActivity extends AppCompatActivity {
         serviceReportModel.setInTime(intimeone);
         serviceReportModel.setOutTime(outtimeone);
         serviceReportModel.setVisitDetails(visistDetails);
+        serviceReportModel.setAdvice(customeradvice);
         serviceReportModel.setPartsTotal(partstotal);
         serviceReportModel.setCalloutstdot(calloutstdot);
         serviceReportModel.setLabourHrs(labourhours);
@@ -627,6 +796,13 @@ public class MainActivity extends AppCompatActivity {
                     new String[] {Manifest.permission.READ_EXTERNAL_STORAGE}, READ_EXTERNAL_STORAGE_CODE);
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(MainActivity.this)) {
+            // Check if the app has permission to draw over other apps
+            Intent permissionIntent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + getPackageName()));
+            startActivityForResult(permissionIntent, OVERLAY_PERMISSION_CODE);
+        }
+
     }
 
     @Override
@@ -649,6 +825,22 @@ public class MainActivity extends AppCompatActivity {
                 //Toast.makeText(this, "Read external storage permission is required to use the app", Toast.LENGTH_SHORT).show();
             }
         }
+        if (requestCode == OVERLAY_PERMISSION_CODE) {
+            // Check if the permission request is for overlay permission
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Overlay permission granted
+                startOverlayService();
+            } else {
+                // Overlay permission denied
+                //Toast.makeText(this, "Overlay permission denied", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private void startOverlayService() {
+        // Start the overlay service
+        Intent overlayIntent = new Intent(this, OverlayService.class);
+        startService(overlayIntent);
     }
 
     private void addPartView() {
@@ -703,7 +895,7 @@ public class MainActivity extends AppCompatActivity {
 
             StringRequest stringRequest = new StringRequest(
                     Request.Method.POST,
-                    "https://midshire.mobyottadevelopers.online/reportsNoParts.php",
+                    "https://projectsmobyotta.com/midshire/reportsNoParts.php",
                     new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
@@ -716,8 +908,8 @@ public class MainActivity extends AppCompatActivity {
                                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-                                            finish();
-                                            startActivity(starterIntent);
+//                                            finish();
+//                                            startActivity(starterIntent);
                                         }
                                     }).show();
                         }
@@ -743,6 +935,7 @@ public class MainActivity extends AppCompatActivity {
                     params.put("serviceimgtwo",imagetwostr);
                     params.put("serviceimgthree",imagethreestr);
                     params.put("serviceimgfour",imagefourstr);
+                    params.put("servicemachines",machineListLines);
                     params.put("servicedetails",jsonObject.toString());
                     params.put("signatureImage",signatureStr);
 
@@ -756,7 +949,7 @@ public class MainActivity extends AppCompatActivity {
 
             StringRequest stringRequest = new StringRequest(
                     Request.Method.POST,
-                    "https://midshire.mobyottadevelopers.online/report.php",
+                    "https://projectsmobyotta.com/midshire/report.php",
                     new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
@@ -768,8 +961,8 @@ public class MainActivity extends AppCompatActivity {
                                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-                                            finish();
-                                            startActivity(starterIntent);
+//                                            finish();
+//                                            startActivity(starterIntent);
                                         }
                                     }).show();
                         }
@@ -795,6 +988,7 @@ public class MainActivity extends AppCompatActivity {
                     params.put("serviceimgthree",imagethreestr);
                     params.put("serviceimgfour",imagefourstr);
                     params.put("serviceparts",partsOrderLines);
+                    params.put("servicemachines",machineListLines);
                     params.put("servicedetails",jsonObject.toString());
                     params.put("signatureImage",signatureStr);
 
