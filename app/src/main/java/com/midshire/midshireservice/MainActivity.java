@@ -908,8 +908,8 @@ public class MainActivity extends AppCompatActivity {
                                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-//                                            finish();
-//                                            startActivity(starterIntent);
+                                            finish();
+                                            startActivity(starterIntent);
                                         }
                                     }).show();
                         }
@@ -961,8 +961,8 @@ public class MainActivity extends AppCompatActivity {
                                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                                         @Override
                                         public void onClick(DialogInterface dialog, int which) {
-//                                            finish();
-//                                            startActivity(starterIntent);
+                                            finish();
+                                            startActivity(starterIntent);
                                         }
                                     }).show();
                         }
